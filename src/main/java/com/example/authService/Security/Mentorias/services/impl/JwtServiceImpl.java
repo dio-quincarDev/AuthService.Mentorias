@@ -3,8 +3,14 @@ package com.example.authService.Security.Mentorias.services.impl;
 import com.example.authService.Security.Mentorias.common.dtos.TokenResponse;
 import com.example.authService.Security.Mentorias.services.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParserBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+
+import java.util.Date;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -16,21 +22,45 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public TokenResponse generateToken(Long userId) {
-        return null;
+        Date expirationDate = new Date(Long.MAX_VALUE);
+
+        String token = Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(expirationDate)
+                .signWith(SignatureAlgorithm.HS512, this.secretToken)
+               .compact();
+        return TokenResponse.builder()
+                .accessToken(token)
+               .build();
     }
 
     @Override
     public Claims getClaims(String token) {
-        return null;
+        return Jwts.parser()
+                .setSigningKey(this.secretToken)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     @Override
     public boolean isExpired(String token) {
-        return false;
+        try {
+            return getClaims(token).getExpiration().before(new Date());
+        } catch(Exception e){
+            return false;
+        }
+
     }
 
     @Override
     public Integer extractUserId(String token) {
-        return 0;
+        try {
+            return Integer.parseInt(getClaims(token).getSubject());
+        } catch(Exception e){
+            return null;
+
+        }
     }
 }
