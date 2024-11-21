@@ -30,7 +30,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        Optional.ofNullable(request.getHeader("Authorization"))
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        String jwt = authHeader.substring(7);
+        Long userId = Long.valueOf(jwtService.extractUserId(jwt));
+
+        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            userRepository.findById(Long.valueOf(userId))
+                    .ifPresent(userDetails -> authenticateUser(request, userDetails));
+        }
+        filterChain.doFilter(request, response);
+
+
+
+      /*  Optional.ofNullable(request.getHeader("Authorization"))
                 .filter(header-> !header.isBlank())
                 .map(header -> header.substring(7))
         .map(jwtService::extractUserId)
@@ -39,9 +56,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     request.setAttribute("X-User-Id", userDetails.getId());
                     processAuthentication(request, userDetails);
                 });
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response);*/
     }
 
+    private void authenticateUser(HttpServletRequest request, UserDetails userDetails) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken); // Establece autenticación
+    }
+}
+
+
+    /*
     private void processAuthentication(HttpServletRequest request, UserDetails userDetails){
         String jwtToken = request.getHeader("Authorization").substring(7);
         Optional.of(jwtToken)
@@ -51,7 +78,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     );
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    return true;
                 }));
 
     }
-}
+}*/

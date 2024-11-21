@@ -1,11 +1,24 @@
 
+
 jwt:
   secret: ababxakbxnakjxkjdanckbckjbwbdnbckndksjcnjnasjnckjfnkjnvfjnvdkjdcjdfkjnfanvnvbruheuhf
-  spring:
+
+spring:
     datasource:
-      url: jdbc:postgresql://localhost:5432/mydatabase
-      username: myuser
-      password: mypassword
-      jpa:
+      url: jdbc:postgresql://localhost:5432/auth
+      username: postgres
+      password: diogenes
+      driver-class-name: org.postgresql.Driver
+    jpa:
+      hibernate:
+        ddl-auto: update
+      show-sql: true
+      properties:
         hibernate:
-          ddl-auto: update
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+
+      springdoc:
+        api-docs:
+          path: /v3/api-docs
+        swagger-ui:
+          path: /swagger-ui.html
