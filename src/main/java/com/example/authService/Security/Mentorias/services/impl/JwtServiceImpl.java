@@ -3,7 +3,6 @@ package com.example.authService.Security.Mentorias.services.impl;
 import com.example.authService.Security.Mentorias.common.dtos.TokenResponse;
 import com.example.authService.Security.Mentorias.services.JwtService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +34,7 @@ public class JwtServiceImpl implements JwtService {
                .build();
     }
 
+
     @Override
     public Claims getClaims(String token) {
         return Jwts.parser()
@@ -54,13 +54,11 @@ public class JwtServiceImpl implements JwtService {
 
     }
 
-    @Override
-    public Integer extractUserId(String token) {
-        try {
-            return Integer.parseInt(getClaims(token).getSubject());
-        } catch(Exception e){
-            return null;
-
-        }
+    @Override public Integer extractUserId(String token) {
+        try { String subject = getClaims(token).getSubject();
+             return Integer.parseInt(subject);
+        } catch (Exception e) {
+            System.err.println("Error extrayendo token" + e.getMessage());
+            return null; }
     }
 }

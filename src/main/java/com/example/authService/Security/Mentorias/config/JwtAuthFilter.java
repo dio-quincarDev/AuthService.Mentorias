@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
+
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -37,12 +37,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         String jwt = authHeader.substring(7);
-        Long userId = Long.valueOf(jwtService.extractUserId(jwt));
-
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            userRepository.findById(Long.valueOf(userId))
-                    .ifPresent(userDetails -> authenticateUser(request, userDetails));
+        try {
+            Integer userId = jwtService.extractUserId(jwt);
+            if (userId == null){
+                System.err.println("invalid or missing userId in JWT.");
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
+            userRepository.findById(Long.valueOf(userId)).ifPresent(userDetails -> authenticateUser(request, userDetails));
+            request.setAttribute("X-User-Id", String.valueOf(userId));
+        }catch(Exception e){
+            System.err.println("Error parsing JWT: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
+
         filterChain.doFilter(request, response);
 
 
