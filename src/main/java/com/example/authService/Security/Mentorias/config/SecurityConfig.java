@@ -33,8 +33,15 @@ public class SecurityConfig {
                .csrf(csrf-> csrf.disable())
                        .cors(Customizer.withDefaults())
                                .authorizeHttpRequests(auth -> auth
-                                       .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html" , "/v1/auth/register", "/v1/auth").permitAll()
-                                       .anyRequest().authenticated()
+                                       .requestMatchers("/v3/api-docs/**",
+                                               "/swagger-ui/**",
+                                               "/swagger-ui.html",
+                                               "/v1/auth/register",
+                                               "/v1/auth",
+                                               "/v1/auth/login")
+                                       .permitAll()
+                                       .anyRequest()
+                                       .authenticated()
                                )
                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                .authenticationProvider(authenticationProvider())

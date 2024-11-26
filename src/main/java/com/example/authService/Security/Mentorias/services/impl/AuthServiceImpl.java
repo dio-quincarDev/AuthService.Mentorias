@@ -1,5 +1,6 @@
 package com.example.authService.Security.Mentorias.services.impl;
 
+import com.example.authService.Security.Mentorias.common.dtos.LoginRequest;
 import com.example.authService.Security.Mentorias.common.dtos.TokenResponse;
 import com.example.authService.Security.Mentorias.common.dtos.UserRequest;
 import com.example.authService.Security.Mentorias.common.entities.UserModel;
@@ -30,6 +31,16 @@ public class AuthServiceImpl implements AuthService {
                 .map(userRepository::save)
                 .map(userCreated-> jwtService.generateToken(userCreated.getId()))
                 .orElseThrow(() -> new RuntimeException("Error creating user"));
+    }
+
+    @Override
+    public TokenResponse login(LoginRequest loginRequest) {
+        UserModel user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(()-> new IllegalArgumentException("user not found"));
+        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())){
+            throw new IllegalArgumentException("Invalid password");
+        }
+        return jwtService.generateToken(user.getId());
     }
 
     private UserModel mapToEntity (UserRequest userRequest) {
